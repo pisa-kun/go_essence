@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var content = `
@@ -29,6 +31,32 @@ type Data struct {
 	Informations Informations `json:"informations"`
 }
 
+// カレントディレクトリ配下のファイル一覧を返す
+func CurrentWalkDir() []string {
+	files := []string{}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	walkDir := func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	}
+	err = filepath.WalkDir(cwd, walkDir)
+	if err != nil {
+		log.Fatal(nil)
+	}
+	return files
+}
+
 func main() {
 	// var data Data
 	// err := json.Unmarshal([]byte(content), &data)
@@ -50,4 +78,9 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(data)
+
+	fmt.Println("---CurrentDirectory under all files---")
+	for _, dir := range CurrentWalkDir() {
+		fmt.Println(dir)
+	}
 }
